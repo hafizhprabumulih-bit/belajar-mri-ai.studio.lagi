@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="MRI Pocket - Media Belajar Fisika dan Teknik MRI Ringkas & Interaktif">
+  <title>MRI Pocket</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfeff',
+              400: '#22d3ee',
+              500: '#06b6d4',
+              600: '#0891b2',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    /* Safe area handling for iOS notch / gesture bar */
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 1rem);
+    }
+    .pt-safe {
+      padding-top: env(safe-area-inset-top, 0.75rem);
+    }
+    /* Smooth transitions */
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.18s ease-in-out forwards;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Custom Scrollbar for sleek mobile look */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- Mobile Container Wrapper (Centered on tablet/desktop) -->
+  <div class="max-w-md mx-auto min-h-screen bg-slate-900 border-x border-slate-800 flex flex-col relative shadow-2xl">
+
+    <!-- Top Sticky Header -->
+    <header class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-3 pt-safe flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20">
+          <i class="fa-solid fa-magnet text-sm"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-base font-bold tracking-tight text-white leading-none">MRI Pocket</h1>
+            <span class="text-[10px] font-semibold bg-cyan-950 text-cyan-400 border border-cyan-800/80 px-1.5 py-0.5 rounded">v2.1</span>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-tight">Panduan Fisika & Klinis MRI</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-1">
+        <button onclick="bukaModalInfo()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition" aria-label="Informasi Aplikasi">
+          <i class="fa-solid fa-circle-info text-sm"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto px-4 py-4 pb-28">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: MATERI (Modul & Pohon Simpul T1/T2/T3) -->
+      <!-- ========================================== -->
+      <section id="tab-materi" class="tab-pane active">
+        <!-- Banner Non-Klinis -->
+        <div class="bg-gradient-to-r from-amber-950/40 via-amber-900/20 to-slate-900 border border-amber-800/40 rounded-xl p-3 mb-4 flex items-start gap-2.5">
+          <i class="fa-solid fa-triangle-exclamation text-amber-400 text-xs mt-0.5"></i>
+          <p class="text-[11px] text-amber-200/90 leading-relaxed">
+            <strong>Bukan untuk keputusan klinis.</strong> Khusus media edukasi. SOP & protokol institusi setempat tetap menjadi rujukan utama.
+          </p>
+        </div>
+
+        <!-- Tampilan Daftar Modul (Bila belum memilih modul) -->
+        <div id="tampilan-daftar-modul">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-semibold text-slate-200 uppercase tracking-wider">Pilih Modul Pembelajaran</h2>
+            <span class="text-xs text-slate-400" id="label-progres-total">0/0 Selesai</span>
+          </div>
+          <div class="space-y-3" id="wadah-modul">
+            <!-- Kartu Modul dibuat via Javascript -->
+          </div>
+        </div>
+
+        <!-- Tampilan Detail Materi Modul (Saat modul dibuka) -->
+        <div id="tampilan-detail-modul" class="hidden">
+          <button onclick="kembaliKeDaftarModul()" class="mb-3 text-xs font-medium text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 py-1">
+            <i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Modul
+          </button>
+          
+          <div id="header-modul-aktif" class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3.5 mb-4">
+            <!-- Metadata Modul Aktif -->
+          </div>
+
+          <!-- Navigasi Tingkat Filter -->
+          <div class="flex items-center gap-1.5 mb-4 bg-slate-950 p-1 rounded-lg border border-slate-800">
+            <button onclick="saringTingkat(0)" id="btn-tingkat-0" class="btn-tingkat flex-1 py-1.5 text-xs font-medium rounded-md bg-cyan-600 text-white transition">Semua</button>
+            <button onclick="saringTingkat(1)" id="btn-tingkat-1" class="btn-tingkat flex-1 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-200 transition">T1 (Dasar)</button>
+            <button onclick="saringTingkat(2)" id="btn-tingkat-2" class="btn-tingkat flex-1 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-200 transition">T2 (Menengah)</button>
+            <button onclick="saringTingkat(3)" id="btn-tingkat-3" class="btn-tingkat flex-1 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-200 transition">T3 (Lanjut)</button>
+          </div>
+
+          <!-- Daftar Simpul Materi -->
+          <div class="space-y-4" id="wadah-kartu-materi">
+            <!-- Kartu materi dengan mode Singkat/Lengkap/Analogi dimuat di sini -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: KONTRAS & SIMULATOR                -->
+      <!-- ========================================== -->
+      <section id="tab-kontras" class="tab-pane">
+        <div class="mb-4">
+          <h2 class="text-base font-bold text-white tracking-tight">Simulator Pembobotan & Kontras</h2>
+          <p class="text-xs text-slate-400">Pilih jaringan biologis dan atur parameter TR & TE untuk melihat respon sinyal.</p>
+        </div>
+
+        <!-- Pemilih Jaringan -->
+        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Pilih Jaringan Sampel</label>
+        <div class="grid grid-cols-3 gap-2 mb-4" id="wadah-tombol-jaringan">
+          <!-- Tombol Jaringan di-render JS -->
+        </div>
+
+        <!-- Kartu Karakteristik Fisika Jaringan -->
+        <div id="info-jaringan-terpilih" class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3.5 mb-5">
+          <!-- Info dinamis di-render JS -->
+        </div>
+
+        <!-- Slider Parameter TR / TE -->
+        <div class="bg-slate-800/50 border border-slate-800 rounded-xl p-4 mb-5 space-y-4">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-slate-200">Kontrol Parameter Sekuens</span>
+            <span id="badge-pembobotan" class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-900/60 text-cyan-300 border border-cyan-700">T1-Weighted</span>
+          </div>
+          
+          <!-- TR Slider -->
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">TR (Repetition Time)</span>
+              <span id="label-tr" class="font-mono text-cyan-400 font-bold">500 ms</span>
+            </div>
+            <input type="range" id="slider-tr" min="50" max="4000" step="25" value="500" 
+              class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+              oninput="perbaruiSimulasiKontras()">
+            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+              <span>50 ms (Pendek)</span>
+              <span>4000 ms (Panjang)</span>
+            </div>
+          </div>
+
+          <!-- TE Slider -->
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">TE (Echo Time)</span>
+              <span id="label-te" class="font-mono text-cyan-400 font-bold">15 ms</span>
+            </div>
+            <input type="range" id="slider-te" min="5" max="180" step="1" value="15" 
+              class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+              oninput="perbaruiSimulasiKontras()">
+            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+              <span>5 ms (Pendek)</span>
+              <span>180 ms (Panjang)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hasil Visualisasi Sinyal -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-center">
+          <span class="text-xs text-slate-400 block mb-2 font-medium">Estimasi Intensitas Sinyal Relatif</span>
+          <div class="flex items-center justify-center gap-4">
+            <div id="lingkaran-sinyal" class="w-16 h-16 rounded-full border-2 border-slate-600 transition-colors duration-200 shadow-inner flex items-center justify-center text-xs font-mono font-bold">
+              <!-- Warna grayscale sinyal dinamis -->
+            </div>
+            <div class="text-left">
+              <div class="text-xs text-slate-400">Intensitas Relatif:</div>
+              <div id="skor-sinyal" class="text-lg font-mono font-bold text-white">0.00</div>
+              <div id="kategori-sinyal" class="text-[11px] text-cyan-400 font-medium">Iso-intens</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: KAMUS (Glossary & Tautan Cepat)     -->
+      <!-- ========================================== -->
+      <section id="tab-kamus" class="tab-pane">
+        <div class="mb-3">
+          <h2 class="text-base font-bold text-white tracking-tight">Kamus Istilah MRI</h2>
+          <p class="text-xs text-slate-400">Glosarium istilah fisika, instrumen, dan artefak MRI.</p>
+        </div>
+
+        <!-- Kotak Pencarian -->
+        <div class="relative mb-3">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input type="text" id="input-cari-kamus" oninput="saringKamus()" placeholder="Cari istilah (contoh: Larmor, TR, TI)..."
+            class="w-full bg-slate-800/90 border border-slate-700 text-xs rounded-xl pl-8 pr-4 py-2.5 text-slate-100 placeholder-slate-400 focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <!-- Filter Pill Modul -->
+        <div class="flex gap-1.5 overflow-x-auto pb-2 mb-3 text-xs scrollbar-none" id="filter-pills-kamus">
+          <button onclick="setFilterModulKamus('SEMUA')" class="pill-kamus whitespace-nowrap px-2.5 py-1 rounded-full bg-cyan-600 text-white font-medium text-[11px]">Semua</button>
+          <button onclick="setFilterModulKamus('M01')" class="pill-kamus whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 font-medium text-[11px]">M01 Fisika</button>
+          <button onclick="setFilterModulKamus('M02')" class="pill-kamus whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 font-medium text-[11px]">M02 Relaksasi</button>
+          <button onclick="setFilterModulKamus('M07')" class="pill-kamus whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 font-medium text-[11px]">M07 Safety</button>
+        </div>
+
+        <!-- Daftar Istilah -->
+        <div class="space-y-2.5" id="wadah-daftar-kamus">
+          <!-- Render istilah via JS -->
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: KUIS (Latihan Interaktif)           -->
+      <!-- ========================================== -->
+      <section id="tab-kuis" class="tab-pane">
+        <div class="mb-4">
+          <h2 class="text-base font-bold text-white tracking-tight">Kuis Evaluasi Mandiri</h2>
+          <p class="text-xs text-slate-400">Uji pemahaman simpul materi. Skor dihitung dari pilihan pertama.</p>
+        </div>
+
+        <div id="wadah-area-kuis" class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-4">
+          <!-- Kuis diisi dinamis oleh JS -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar (4 Tab Mobile Thumb-Friendly) -->
+    <nav class="fixed bottom-0 left-0 right-0 z-30 flex justify-center pointer-events-none pb-safe">
+      <div class="w-full max-w-md bg-slate-900/95 backdrop-blur-md border-t border-slate-800 pointer-events-auto px-2 py-1.5 flex items-center justify-around">
+        <button onclick="pindahTab('materi')" id="nav-materi" class="nav-item flex-1 py-1.5 flex flex-col items-center justify-center text-cyan-400 transition" aria-label="Tab Materi">
+          <i class="fa-solid fa-book-open text-base mb-1"></i>
+          <span class="text-[10px] font-semibold">Materi</span>
+        </button>
+        <button onclick="pindahTab('kontras')" id="nav-kontras" class="nav-item flex-1 py-1.5 flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition" aria-label="Tab Kontras">
+          <i class="fa-solid fa-sliders text-base mb-1"></i>
+          <span class="text-[10px] font-semibold">Kontras</span>
+        </button>
+        <button onclick="pindahTab('kamus')" id="nav-kamus" class="nav-item flex-1 py-1.5 flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition" aria-label="Tab Kamus">
+          <i class="fa-solid fa-spell-check text-base mb-1"></i>
+          <span class="text-[10px] font-semibold">Kamus</span>
+        </button>
+        <button onclick="pindahTab('kuis')" id="nav-kuis" class="nav-item flex-1 py-1.5 flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition" aria-label="Tab Kuis">
+          <i class="fa-solid fa-clipboard-question text-base mb-1"></i>
+          <span class="text-[10px] font-semibold">Kuis</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Modal Informasi & Disclaimer Non-Klinis -->
+    <div id="modal-info" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-4 hidden">
+      <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-cyan-400"></i> Tentang MRI Pocket
+          </h3>
+          <button onclick="tutupModalInfo()" class="text-slate-400 hover:text-white p-1">
+            <i class="fa-solid fa-xmark text-base"></i>
+          </button>
+        </div>
+        <div class="text-xs text-slate-300 space-y-2.5 leading-relaxed">
+          <p>
+            <strong>MRI Pocket</strong> adalah prototipe aplikasi mobile-first yang mengadopsi struktur kurikulum dan taksonomi materi dari <em>Grand Design v2</em>.
+          </p>
+          <div class="p-2.5 rounded-lg bg-amber-950/40 border border-amber-800/40 text-[11px] text-amber-200">
+            <strong>Pernyataan Kepatuhan:</strong> Seluruh data konstanta, nilai numerik relaksasi jaringan, dan formula adalah untuk kebutuhan pengajaran konsep dasar radiologi & radiografi, bukan acuan diagnostik klinis penderita.
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Versi data: 2.1.0-alpha · Sesuai prinsip T1-T3 dan model kartu 3-mode (Singkat, Lengkap, Analogi).
+          </p>
+        </div>
+        <button onclick="tutupModalInfo()" class="mt-4 w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold">
+          Tutup & Lanjutkan Belajar
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT & DATA (Tersentralisasi dari Grand Design v2)  -->
+  <!-- ======================================================== -->
+  <script>
+    /* --- DATA KONSTANTA TUNGGAL (konstanta.json) --- */
+    const KONSTANTA = {
+      gamma_1H: 42.58, // MHz/Tesla (Gyromagnetic ratio Hidrogen)
+      jaringan: {
+        fat: { nama: "Lemak (Fat)", t1: 260, t2: 80, pd: 0.90, desc: "T1 sangat pendek, T2 sedang. Sangat terang pada T1W." },
+        wm: { nama: "White Matter (Otak)", t1: 780, t2: 90, pd: 0.70, desc: "Banyak mielin, T1 lebih pendek daripada substansia grisea." },
+        gm: { nama: "Gray Matter (Otak)", t1: 920, t2: 100, pd: 0.82, desc: "Kandungan air lebih tinggi dari White Matter." },
+        csf: { nama: "Cairan Serebrospinal (CSF)", t1: 4000, t2: 2000, pd: 1.0, desc: "Cairan bebas. T1 dan T2 sangat panjang. Sangat terang pada T2W." },
+        muscle: { nama: "Otot (Muscle)", t1: 870, t2: 45, pd: 0.75, desc: "T2 relatif pendek, tampak gelap pada T2W standar." },
+        edema: { nama: "Edema / Cairan Patologis", t1: 2200, t2: 300, pd: 0.95, desc: "T1 panjang, T2 panjang. Sangat mencolok pada sekuens T2/FLAIR." }
+      }
+    };
+
+    /* --- DATA MODUL (modul.json) --- */
+    const DAFTAR_MODUL = [
+      {
+        id: "M01",
+        nomor: "Modul 01",
+        judul: "Fisika Dasar MRI & Presesi Spin",
+        ringkas: "Atom, populasi spin netral, presesi Larmor, frekuensi resonansi, dan FID.",
+        ikon: "fa-wave-square",
+        warna: "cyan",
+        tingkatLabel: "T1 - T3",
+        simpul: [
+          {
+            kode: "T1.1",
+            tingkat: 1,
+            judul: "Spin Nuklir dan Proton Hidrogen",
+            singkat: "Atom Hidrogen ($^1H$) dipilih untuk MRI klinis karena memiliki satu proton tunggal (bilangan ganjil) yang menghasilkan momentum sudut magnetik dan jumlahnya paling melimpah dalam tubuh manusia.",
+            lengkap: "Inti atom dengan jumlah proton atau neutron ganjil memiliki momen magnetik intrinsik yang disebut <em>spin</em>. Hidrogen ($^1H$) adalah pilihan ideal dalam pencitraan medis karena tubuh manusia terdiri dari ~65-70% air ($H_2O$) dan molekul lemak, sehingga densitas protonnya sangat tinggi untuk menghasilkan sinyal MRI yang memadai.",
+            analogi: "Bayangkan setiap proton hidrogen di tubuh Anda seperti jarum kompas magnet super mikro yang bebas berputar ke segala arah bila tidak ada medan magnet luar.",
+            lab: null
+          },
+          {
+            kode: "T1.5",
+            tingkat: 1,
+            judul: "Presesi dan Persamaan Larmor",
+            singkat: `Di dalam medan magnet utama B0, spin berputar gasing (presesi) dengan frekuensi sebanding dengan kuat medan: f = γ × B0. Untuk hidrogen, γ = ${KONSTANTA.gamma_1H} MHz/T.`,
+            lengkap: `Ketika ditempatkan di medan magnet luar ($B_0$), proton hidrogen tidak langsung sejajar kaku, melainkan berputar miring mengitari sumbu $B_0$ (gerak presesi). Frekuensi presesi dihitung dengan Persamaan Larmor: <br><strong class="text-cyan-400 font-mono block my-1">f₀ = γ · B₀</strong> Pada medan 1.5 Tesla, frekuensi presesi hidrogen adalah ~63.87 MHz (rentang gelombang radio / RF).`,
+            analogi: "Mirip seperti gasing mainan yang mulai miring saat berputar: ujung batangnya berputar melingkar di udara mengelilingi sumbu gravitasi.",
+            lab: "presesi_canvas"
+          },
+          {
+            kode: "T2.1",
+            tingkat: 2,
+            judul: "Vektor Magnetisasi Netto (NMV)",
+            singkat: "Kelebihan sedikit proton yang sejajar paralel pada tingkat energi rendah membentuk Magnetisasi Longitudinal netto (M0 / NMV).",
+            lengkap: "Menurut distribusi Boltzmann, terdapat sedikit kelebihan spin yang berada pada status energi paralel (searah B0) dibandingkan antiparalel (berlawanan B0). Selisih fraksional yang sangat kecil ini (hanya beberapa spin per satu juta pada 1.5 T) terakumulasi membentuk vektor magnetisasi makroskopik netto (Net Magnetization Vector / NMV) sepanjang sumbu longitudinal (z).",
+            analogi: "Bagaikan kerumunan di stadion: ada yang berdiri dan ada yang duduk. Meski selisihnya sedikit, suara kelompok yang lebih banyak itulah yang menentukan gemuruh stadion.",
+            lab: null
+          }
+        ]
+      },
+      {
+        id: "M02",
+        nomor: "Modul 02",
+        judul: "Relaksasi T1 & T2 serta Pembobotan",
+        ringkas: "Waktu relaksasi longitudinal (T1), transversal (T2/T2*), dan kontras citra.",
+        ikon: "fa-chart-line",
+        warna: "indigo",
+        tingkatLabel: "T1 - T2",
+        simpul: [
+          {
+            kode: "T1.2",
+            tingkat: 1,
+            judul: "Relaksasi T1 (Spin-Lattice)",
+            singkat: "Waktu yang dibutuhkan magnetisasi longitudinal untuk kembali pulih sebesar ~63% dari nilai awalnya setelah pulsa RF dihentikan.",
+            lengkap: "Relaksasi T1 (pemulihan longitudinal) terjadi ketika spin melepaskan energi RF yang diserapnya kembali ke kisi-kisi lingkungan molekul di sekitarnya (lattice). Lemak memiliki waktu T1 pendek karena frekuensi tumble molekulnya dekat dengan frekuensi Larmor, sedangkan air bebas memiliki T1 yang panjang.",
+            analogi: "Seperti secangkir teh panas yang perlahan-lahan melepaskan kalornya ke udara ruangan hingga kembali ke temperatur kamar.",
+            lab: null
+          }
+        ]
+      },
+      {
+        id: "M07",
+        nomor: "Modul 07",
+        judul: "Keselamatan MR (MR Safety)",
+        ringkas: "Zona MR, efek proyektil, SAR, gradient noise, dan skrining implan.",
+        ikon: "fa-shield-halved",
+        warna: "rose",
+        tingkatLabel: "T1 - T3",
+        simpul: [
+          {
+            kode: "T1.1",
+            tingkat: 1,
+            judul: "Empat Zona Keselamatan ACR",
+            singkat: "Zona I (Akses umum bebas), Zona II (Penerimaan/Skrining), Zona III (Area terkontrol radiografer), Zona IV (Ruang magnet scanner).",
+            lengkap: "American College of Radiology (ACR) membagi fasilitas MRI menjadi empat zona ketat untuk mencegah kecelakaan fatal proyektil feromagnetik dan paparan RF liar. Hanya pasien yang telah diskrining aman yang diizinkan memasuki Zona III dan Zona IV di bawah pengawasan langsung personel MR berwenang.",
+            analogi: "Bagaikan gerbang keamanan bandara: dari lobi umum luar, pos periksa tiket, pemindaian bagasi X-ray, hingga ke kokpit pesawat.",
+            lab: null
+          }
+        ]
+      }
+    ];
+
+    /* --- DATA KAMUS (kamus.json) --- */
+    const KAMUS_DATA = [
+      { istilah: "Larmor (Frekuensi)", singkatan: "f0", modul: "M01", simpul: "T1.5", arti: "Frekuensi gerak presesi putaran inti atom hidrogen di bawah pengaruh kuat medan magnet luar." },
+      { istilah: "TR (Repetition Time)", singkatan: "TR", modul: "M02", simpul: "T1.2", arti: "Waktu antar pulsa eksitasi RF berulang. Menentukan pembobotan T1 pada citra." },
+      { istilah: "TE (Echo Time)", singkatan: "TE", modul: "M02", simpul: "T1.2", arti: "Waktu dari pulsa RF eksitasi hingga puncak sinyal echo dicatat. Menentukan pembobotan T2." },
+      { istilah: "NMV (Net Magnetization Vector)", singkatan: "M0", modul: "M01", simpul: "T2.1", arti: "Vektor kumulatif dari seluruh kelebihan spin searah medan magnet utama B0." },
+      { istilah: "SAR (Specific Absorption Rate)", singkatan: "SAR", modul: "M07", simpul: "T1.1", arti: "Daya RF yang diserap oleh massa jaringan tubuh manusia (satuan Watt/kg). Mengatur batas panas." },
+      { istilah: "FID (Free Induction Decay)", singkatan: "FID", modul: "M01", simpul: "T1.5", arti: "Sinyal induksi RF bebas yang langsung meluruh segera setelah pulsa 90 derajat dihentikan." }
+    ];
+
+    /* --- DATA SOAL KUIS (soal.json) --- */
+    const SOAL_KUIS = [
+      {
+        id: "Q1",
+        modul: "M01",
+        simpul: "T1.5",
+        tingkat: 1,
+        pertanyaan: `Berapakah frekuensi presesi Larmor untuk proton hidrogen pada pesawat MRI berkekuatan 1.5 Tesla? (γ = ${KONSTANTA.gamma_1H} MHz/T)`,
+        pilihan: [
+          "~42.58 MHz",
+          "~63.87 MHz",
+          "~127.74 MHz",
+          "~21.29 MHz"
+        ],
+        jawaban: 1, // indeks ke-1 (~63.87 MHz)
+        penjelasan: `Sesuai rumus Larmor f = γ · B0: 42.58 MHz/T × 1.5 T = 63.87 MHz.`
+      },
+      {
+        id: "Q2",
+        modul: "M01",
+        simpul: "T1.1",
+        tingkat: 1,
+        pertanyaan: "Mengapa inti atom Hidrogen ($^1H$) menjadi pilihan utama dalam MRI klinis rutin?",
+        pilihan: [
+          "Karena tidak memiliki spin magnetik sama sekali",
+          "Karena radioaktif dan mudah meluruh",
+          "Karena kelimpahannya paling tinggi di tubuh dan memiliki satu proton tunggal",
+          "Karena frekuensinya selalu konstan di segala medan magnet"
+        ],
+        jawaban: 2,
+        penjelasan: "Tubuh manusia kaya akan air dan lemak. Proton hidrogen memiliki momen magnetik kuat dan kelimpahan paling melimpah."
+      },
+      {
+        id: "Q3",
+        modul: "M07",
+        simpul: "T1.1",
+        tingkat: 1,
+        pertanyaan: "Pada pembagian zona keselamatan ACR, di zona manakah letak scanner magnet MRI berada?",
+        pilihan: [
+          "Zona I",
+          "Zona II",
+          "Zona III",
+          "Zona IV"
+        ],
+        jawaban: 3,
+        penjelasan: "Zona IV adalah ruang magnet scanner sebenarnya, tempat bahaya medan statis dan proyektil paling tinggi."
+      }
+    ];
+
+    /* ======================================================== */
+    /* STATE MANAJEMEN APLIKASI                                 */
+    /* ======================================================== */
+    let modulAktif = null;
+    let saringanTingkatAktif = 0; // 0 = Semua
+    let filterModulKamus = "SEMUA";
+    let jaringanTerpilih = "fat";
+    let statusProgres = JSON.parse(localStorage.getItem("mri_pocket_progres") || "{}");
+    let animasiPresesiId = null;
+
+    /* --- Router Tab --- */
+    function pindahTab(namaTab) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => {
+        el.classList.remove('text-cyan-400');
+        el.classList.add('text-slate-400');
+      });
+
+      const tabTarget = document.getElementById(`tab-${namaTab}`);
+      const navTarget = document.getElementById(`nav-${namaTab}`);
+      if (tabTarget) tabTarget.classList.add('active');
+      if (navTarget) {
+        navTarget.classList.add('text-cyan-400');
+        navTarget.classList.remove('text-slate-400');
+      }
+
+      // Re-trigger simulator jika masuk tab kontras
+      if (namaTab === 'kontras') {
+        renderPemilihJaringan();
+        perbaruiSimulasiKontras();
+      }
+      if (namaTab === 'kuis') {
+        muatSoalKuis(0);
+      }
+    }
+
+    /* ======================================================== */
+    /* TAB 1: LOGIKA MATERI & MODUL                             */
+    /* ======================================================== */
+    function renderDaftarModul() {
+      const wadah = document.getElementById('wadah-modul');
+      wadah.innerHTML = "";
+
+      let totalSimpul = 0;
+      let totalSelesai = 0;
+
+      DAFTAR_MODUL.forEach(m => {
+        const jumlahSimpul = m.simpul.length;
+        totalSimpul += jumlahSimpul;
+        const selesaiModul = m.simpul.filter(s => statusProgres[s.kode]).length;
+        totalSelesai += selesaiModul;
+
+        const persen = Math.round((selesaiModul / jumlahSimpul) * 100);
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-800/80 hover:bg-slate-800 border border-slate-700/70 rounded-2xl p-4 transition cursor-pointer active:scale-[0.99]";
+        card.onclick = () => bukaModul(m.id);
+        card.innerHTML = `
+          <div class="flex items-start justify-between mb-2">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-${m.warna}-950/80 border border-${m.warna}-700/50 text-${m.warna}-400 flex items-center justify-center text-base">
+                <i class="fa-solid ${m.ikon}"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${m.nomor} · ${m.tingkatLabel}</span>
+                <h3 class="text-sm font-bold text-white">${m.judul}</h3>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-500 text-xs mt-2"></i>
+          </div>
+          <p class="text-xs text-slate-300 mb-3 leading-relaxed">${m.ringkas}</p>
+          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-700/50">
+            <span>${selesaiModul}/${jumlahSimpul} Selesai</span>
+            <span class="font-mono ${persen === 100 ? 'text-emerald-400 font-bold' : 'text-cyan-400'}">${persen}%</span>
+          </div>
+        `;
+        wadah.appendChild(card);
+      });
+
+      document.getElementById('label-progres-total').innerText = `${totalSelesai}/${totalSimpul} Simpul Selesai`;
+    }
+
+    function bukaModul(idModul) {
+      modulAktif = DAFTAR_MODUL.find(m => m.id === idModul);
+      if (!modulAktif) return;
+
+      document.getElementById('tampilan-daftar-modul').classList.add('hidden');
+      document.getElementById('tampilan-detail-modul').classList.remove('hidden');
+
+      // Header Modul Aktif
+      document.getElementById('header-modul-aktif').innerHTML = `
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">${modulAktif.nomor}</span>
+          <span class="text-xs text-slate-400">${modulAktif.tingkatLabel}</span>
+        </div>
+        <h2 class="text-base font-bold text-white mb-1">${modulAktif.judul}</h2>
+        <p class="text-xs text-slate-300">${modulAktif.ringkas}</p>
+      `;
+
+      saringTingkat(0);
+    }
+
+    function kembaliKeDaftarModul() {
+      modulAktif = null;
+      if (animasiPresesiId) cancelAnimationFrame(animasiPresesiId);
+      document.getElementById('tampilan-detail-modul').classList.add('hidden');
+      document.getElementById('tampilan-daftar-modul').classList.remove('hidden');
+      renderDaftarModul();
+    }
+
+    function saringTingkat(tingkat) {
+      saringanTingkatAktif = tingkat;
+      document.querySelectorAll('.btn-tingkat').forEach(b => {
+        b.classList.remove('bg-cyan-600', 'text-white');
+        b.classList.add('text-slate-400');
+      });
+      const aktifBtn = document.getElementById(`btn-tingkat-${tingkat}`);
+      if (aktifBtn) {
+        aktifBtn.classList.add('bg-cyan-600', 'text-white');
+        aktifBtn.classList.remove('text-slate-400');
+      }
+      renderKartuMateri();
+    }
+
+    function renderKartuMateri() {
+      const wadah = document.getElementById('wadah-kartu-materi');
+      wadah.innerHTML = "";
+
+      if (!modulAktif) return;
+
+      const simpulTersaring = saringanTingkatAktif === 0 
+        ? modulAktif.simpul 
+        : modulAktif.simpul.filter(s => s.tingkat === saringanTingkatAktif);
+
+      if (simpulTersaring.length === 0) {
+        wadah.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">Tidak ada simpul materi pada tingkatan ini.</p>`;
+        return;
+      }
+
+      simpulTersaring.forEach(s => {
+        const sudahDibaca = !!statusProgres[s.kode];
+        const card = document.createElement('div');
+        card.id = `kartu-simpul-${s.kode}`;
+        card.className = "bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-sm transition";
+        card.innerHTML = `
+          <!-- Baris Header Simpul -->
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-700 text-cyan-300">${s.kode}</span>
+              <span class="text-[10px] font-semibold text-slate-400">Tingkat ${s.tingkat}</span>
+            </div>
+            <button onclick="toggleStatusBaca('${s.kode}')" class="text-xs flex items-center gap-1 px-2 py-0.5 rounded-full transition ${sudahDibaca ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-700/50 text-slate-400 hover:text-slate-200'}">
+              <i class="fa-solid ${sudahDibaca ? 'fa-check' : 'fa-circle'} text-[9px]"></i>
+              <span class="text-[10px]">${sudahDibaca ? 'Selesai' : 'Belum'}</span>
+            </button>
+          </div>
+
+          <h3 class="text-sm font-bold text-white mb-3">${s.judul}</h3>
+
+          <!-- Segmented Control Mode 3 Lapis (.s, .l, .a) -->
+          <div class="flex items-center p-0.5 bg-slate-950 rounded-lg border border-slate-800 mb-3 text-xs">
+            <button onclick="ubahModeSimpul('${s.kode}', 's')" id="btn-mode-${s.kode}-s" class="flex-1 py-1 rounded-md text-[11px] font-medium bg-slate-800 text-cyan-400 transition">Singkat</button>
+            <button onclick="ubahModeSimpul('${s.kode}', 'l')" id="btn-mode-${s.kode}-l" class="flex-1 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 transition">Lengkap</button>
+            <button onclick="ubahModeSimpul('${s.kode}', 'a')" id="btn-mode-${s.kode}-a" class="flex-1 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 transition">Analogi</button>
+          </div>
+
+          <!-- Wadah Konten Mode -->
+          <div class="text-xs text-slate-200 leading-relaxed mb-3">
+            <div id="konten-${s.kode}-s" class="block">${s.singkat}</div>
+            <div id="konten-${s.kode}-l" class="hidden text-slate-300 space-y-1.5">${s.lengkap}</div>
+            <div id="konten-${s.kode}-a" class="hidden p-2.5 rounded-xl bg-cyan-950/30 border border-cyan-800/40 text-cyan-200 text-xs italic">
+              <i class="fa-solid fa-lightbulb text-cyan-400 mr-1 not-italic"></i> ${s.analogi}
+            </div>
+          </div>
+
+          <!-- Aktivitas Interaktif Tersemat jika ada -->
+          ${s.lab === "presesi_canvas" ? `
+            <div class="mt-3 p-3 bg-slate-950 rounded-xl border border-slate-800">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold text-cyan-400 flex items-center gap-1.5">
+                  <i class="fa-solid fa-atom"></i> Lab Mini: Presesi Spin 3D
+                </span>
+                <span class="text-[10px] text-slate-400 font-mono">B0 = 1.5 T</span>
+              </div>
+              <canvas id="canvas-presesi" width="300" height="140" class="w-full bg-slate-900 rounded-lg border border-slate-800 block mx-auto"></canvas>
+              <p class="text-[10px] text-slate-400 mt-2 text-center">Vektor spin berputar presesi mengelilingi sumbu B0 searah jarum jam.</p>
+            </div>
+          ` : ''}
+        `;
+        wadah.appendChild(card);
+      });
+
+      if (simpulTersaring.some(s => s.lab === "presesi_canvas")) {
+        inisialisasiLabPresesi();
+      }
+    }
+
+    function ubahModeSimpul(kodeSimpul, mode) {
+      ['s', 'l', 'a'].forEach(m => {
+        const el = document.getElementById(`konten-${kodeSimpul}-${m}`);
+        const btn = document.getElementById(`btn-mode-${kodeSimpul}-${m}`);
+        if (el) el.classList.add('hidden');
+        if (btn) {
+          btn.classList.remove('bg-slate-800', 'text-cyan-400');
+          btn.classList.add('text-slate-400');
+        }
+      });
+
+      const targetKonten = document.getElementById(`konten-${kodeSimpul}-${mode}`);
+      const targetBtn = document.getElementById(`btn-mode-${kodeSimpul}-${mode}`);
+      if (targetKonten) targetKonten.classList.remove('hidden');
+      if (targetBtn) {
+        targetBtn.classList.add('bg-slate-800', 'text-cyan-400');
+        targetBtn.classList.remove('text-slate-400');
+      }
+    }
+
+    function toggleStatusBaca(kodeSimpul) {
+      statusProgres[kodeSimpul] = !statusProgres[kodeSimpul];
+      localStorage.setItem("mri_pocket_progres", JSON.stringify(statusProgres));
+      renderKartuMateri();
+    }
+
+    /* --- Kanvas Lab Presesi Larmor Mini --- */
+    function inisialisasiLabPresesi() {
+      const canvas = document.getElementById('canvas-presesi');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let angle = 0;
+
+      function renderFrame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2 + 10;
+        const radius = 45;
+
+        // Gambar Garis Sumbu B0 (Vertikal)
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + 40);
+        ctx.lineTo(cx, cy - 60);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Label Sumbu B0
+        ctx.fillStyle = '#06b6d4';
+        ctx.font = '10px monospace';
+        ctx.fillText('B₀ (z)', cx + 6, cy - 48);
+
+        // Lintasan Presesi Elips
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - 25, radius, radius * 0.35, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Hitung Posisi Ujung Vektor Spin
+        const px = cx + radius * Math.cos(angle);
+        const py = (cy - 25) + (radius * 0.35) * Math.sin(angle);
+
+        // Gambar Vektor Spin Magnetik (Panah Merah/Cyan)
+        ctx.strokeStyle = '#22d3ee';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + 20);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+
+        // Titik Proton di Puncak
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        angle += 0.045;
+        animasiPresesiId = requestAnimationFrame(renderFrame);
+      }
+      if (animasiPresesiId) cancelAnimationFrame(animasiPresesiId);
+      renderFrame();
+    }
+
+    /* ======================================================== */
+    /* TAB 2: SIMULATOR KONTRAS & RELAKSASI                     */
+    /* ======================================================== */
+    function renderPemilihJaringan() {
+      const wadah = document.getElementById('wadah-tombol-jaringan');
+      wadah.innerHTML = "";
+
+      Object.keys(KONSTANTA.jaringan).forEach(k => {
+        const j = KONSTANTA.jaringan[k];
+        const aktif = k === jaringanTerpilih;
+        const btn = document.createElement('button');
+        btn.className = `p-2 rounded-xl text-left border transition text-xs ${aktif ? 'bg-cyan-950/80 border-cyan-500 text-cyan-200' : 'bg-slate-800/60 border-slate-700/60 text-slate-300 hover:bg-slate-800'}`;
+        btn.onclick = () => {
+          jaringanTerpilih = k;
+          renderPemilihJaringan();
+          perbaruiSimulasiKontras();
+        };
+        btn.innerHTML = `
+          <span class="font-bold block text-[11px] truncate">${j.nama.split(' ')[0]}</span>
+          <span class="text-[9px] text-slate-400">T1: ${j.t1}ms</span>
+        `;
+        wadah.appendChild(btn);
+      });
+    }
+
+    function perbaruiSimulasiKontras() {
+      const j = KONSTANTA.jaringan[jaringanTerpilih];
+      const tr = parseInt(document.getElementById('slider-tr').value, 10);
+      const te = parseInt(document.getElementById('slider-te').value, 10);
+
+      document.getElementById('label-tr').innerText = `${tr} ms`;
+      document.getElementById('label-te').innerText = `${te} ms`;
+
+      // Update Card Detail Jaringan
+      document.getElementById('info-jaringan-terpilih').innerHTML = `
+        <div class="flex items-center justify-between mb-1.5">
+          <h4 class="text-xs font-bold text-white">${j.nama}</h4>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-700 text-cyan-300">PD: ${j.pd}</span>
+        </div>
+        <p class="text-[11px] text-slate-300 mb-2">${j.desc}</p>
+        <div class="grid grid-cols-2 gap-2 text-[10px] font-mono bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+          <div>T1 Recovery: <span class="text-cyan-400 font-bold">${j.t1} ms</span></div>
+          <div>T2 Decay: <span class="text-emerald-400 font-bold">${j.t2} ms</span></div>
+        </div>
+      `;
+
+      // Hitung Estimasi Intensitas Sinyal Relatif Spin Echo:
+      // S = PD * (1 - e^(-TR / T1)) * e^(-TE / T2)
+      const t1Factor = 1 - Math.exp(-tr / j.t1);
+      const t2Factor = Math.exp(-te / j.t2);
+      const sinyal = j.pd * t1Factor * t2Factor;
+
+      // Klasifikasi Pembobotan
+      let bobot = "Spin Density (PDW)";
+      if (tr < 800 && te < 30) {
+        bobot = "T1-Weighted (T1W)";
+      } else if (tr > 1800 && te > 70) {
+        bobot = "T2-Weighted (T2W)";
+      }
+      document.getElementById('badge-pembobotan').innerText = bobot;
+
+      // Nilai Grayscale 0 - 255
+      const grayValue = Math.min(255, Math.max(10, Math.round(sinyal * 270)));
+      const lingkaran = document.getElementById('lingkaran-sinyal');
+      lingkaran.style.backgroundColor = `rgb(${grayValue}, ${grayValue}, ${grayValue})`;
+      lingkaran.style.color = grayValue > 140 ? '#090d16' : '#ffffff';
+      lingkaran.innerText = `${Math.round(sinyal * 100)}%`;
+
+      document.getElementById('skor-sinyal').innerText = sinyal.toFixed(2);
+
+      let kat = "Iso-intens";
+      if (grayValue > 180) kat = "Hiper-intens (Terang)";
+      else if (grayValue < 80) kat = "Hipo-intens (Gelap)";
+      document.getElementById('kategori-sinyal').innerText = kat;
+    }
+
+    /* ======================================================== */
+    /* TAB 3: LOGIKA KAMUS & PENCARIAN                          */
+    /* ======================================================== */
+    function renderKamus(daftar) {
+      const wadah = document.getElementById('wadah-daftar-kamus');
+      wadah.innerHTML = "";
+
+      if (daftar.length === 0) {
+        wadah.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Istilah tidak ditemukan.</p>`;
+        return;
+      }
+
+      daftar.forEach(k => {
+        const item = document.createElement('div');
+        item.className = "bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 hover:border-cyan-500/60 transition";
+        item.innerHTML = `
+          <div class="flex items-center justify-between mb-1">
+            <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+              ${k.istilah}
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-700 text-cyan-300 font-normal">${k.singkatan}</span>
+            </h4>
+            <button onclick="lompatKeSimpul('${k.modul}', '${k.simpul}')" class="text-[10px] font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/60">
+              ${k.simpul} <i class="fa-solid fa-arrow-right text-[8px]"></i>
+            </button>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">${k.arti}</p>
+        `;
+        wadah.appendChild(item);
+      });
+    }
+
+    function saringKamus() {
+      const query = document.getElementById('input-cari-kamus').value.toLowerCase();
+      let hasil = KAMUS_DATA.filter(k => 
+        k.istilah.toLowerCase().includes(query) || 
+        k.singkatan.toLowerCase().includes(query) || 
+        k.arti.toLowerCase().includes(query)
+      );
+
+      if (filterModulKamus !== "SEMUA") {
+        hasil = hasil.filter(k => k.modul === filterModulKamus);
+      }
+      renderKamus(hasil);
+    }
+
+    function setFilterModulKamus(modul) {
+      filterModulKamus = modul;
+      document.querySelectorAll('.pill-kamus').forEach(p => {
+        p.classList.remove('bg-cyan-600', 'text-white');
+        p.classList.add('bg-slate-800', 'text-slate-300');
+      });
+      event.target.classList.add('bg-cyan-600', 'text-white');
+      event.target.classList.remove('bg-slate-800', 'text-slate-300');
+      saringKamus();
+    }
+
+    function lompatKeSimpul(idModul, kodeSimpul) {
+      pindahTab('materi');
+      bukaModul(idModul);
+      setTimeout(() => {
+        const el = document.getElementById(`kartu-simpul-${kodeSimpul}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('ring-2', 'ring-cyan-400');
+          setTimeout(() => el.classList.remove('ring-2', 'ring-cyan-400'), 2000);
+        }
+      }, 250);
+    }
+
+    /* ======================================================== */
+    /* TAB 4: MESIN KUIS INTERAKTIF                             */
+    /* ======================================================== */
+    let indeksSoal = 0;
+    let sudahJawab = false;
+    let skorKuis = 0;
+
+    function muatSoalKuis(idx) {
+      indeksSoal = idx;
+      sudahJawab = false;
+      const wadah = document.getElementById('wadah-area-kuis');
+      const soal = SOAL_KUIS[idx];
+
+      if (!soal) {
+        // Tampilan Ringkasan Selesai
+        wadah.innerHTML = `
+          <div class="text-center py-6">
+            <div class="w-14 h-14 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center text-xl mx-auto mb-3">
+              <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h3 class="text-base font-bold text-white mb-1">Kuis Selesai!</h3>
+            <p class="text-xs text-slate-300 mb-4">Skor Percobaan Pertama: <strong class="text-cyan-400 font-mono text-base">${skorKuis} / ${SOAL_KUIS.length}</strong></p>
+            <button onclick="skorKuis = 0; muatSoalKuis(0);" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold">
+              Ulangi Latihan Kuis
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      wadah.innerHTML = `
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-3 border-b border-slate-700/60 pb-2">
+          <span>Pertanyaan ${idx + 1} dari ${SOAL_KUIS.length}</span>
+          <span class="font-mono text-cyan-400">${soal.modul} · ${soal.simpul}</span>
+        </div>
+        <p class="text-xs sm:text-sm font-semibold text-white leading-relaxed mb-4">${soal.pertanyaan}</p>
+        
+        <div class="space-y-2 mb-4" id="wadah-pilihan-jawaban">
+          ${soal.pilihan.map((p, i) => `
+            <button onclick="periksaJawaban(${i})" class="btn-opsi w-full text-left p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs text-slate-200 hover:border-slate-500 transition active:scale-[0.99] flex items-center justify-between">
+              <span>${p}</span>
+              <span class="w-4 h-4 rounded-full border border-slate-600 flex items-center justify-center text-[10px]"></span>
+            </button>
+          `).join('')}
+        </div>
+
+        <div id="wadah-umpan-balik" class="hidden mb-3 p-3 rounded-xl text-xs leading-relaxed" role="status"></div>
+
+        <button id="btn-soal-berikutnya" onclick="muatSoalKuis(${idx + 1})" class="hidden w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold transition">
+          Lanjut ke Soal Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+        </button>
+      `;
+    }
+
+    function periksaJawaban(idxPilihan) {
+      if (sudahJawab) return;
+      sudahJawab = true;
+
+      const soal = SOAL_KUIS[indeksSoal];
+      const tombolPilihan = document.querySelectorAll('.btn-opsi');
+      const feedback = document.getElementById('wadah-umpan-balik');
+      const btnNext = document.getElementById('btn-soal-berikutnya');
+
+      if (idxPilihan === soal.jawaban) {
+        skorKuis++;
+        tombolPilihan[idxPilihan].classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-200');
+        feedback.className = "mb-3 p-3 rounded-xl text-xs bg-emerald-950/60 border border-emerald-800 text-emerald-200 block";
+        feedback.innerHTML = `<strong>Benar!</strong> ${soal.penjelasan}`;
+      } else {
+        tombolPilihan[idxPilihan].classList.add('bg-rose-950/80', 'border-rose-500', 'text-rose-200');
+        tombolPilihan[soal.jawaban].classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-200');
+        feedback.className = "mb-3 p-3 rounded-xl text-xs bg-rose-950/60 border border-rose-800 text-rose-200 block";
+        feedback.innerHTML = `<strong>Kurang Tepat.</strong> ${soal.penjelasan}`;
+      }
+
+      btnNext.classList.remove('hidden');
+    }
+
+    /* ======================================================== */
+    /* MODAL DISCLAIMER NON-KLINIS                              */
+    /* ======================================================== */
+    function bukaModalInfo() {
+      document.getElementById('modal-info').classList.remove('hidden');
+    }
+    function tutupModalInfo() {
+      document.getElementById('modal-info').classList.add('hidden');
+    }
+
+    /* --- Inisialisasi Saat Halaman Dimuat --- */
+    window.addEventListener('DOMContentLoaded', () => {
+      renderDaftarModul();
+      renderPemilihJaringan();
+      perbaruiSimulasiKontras();
+      renderKamus(KAMUS_DATA);
+    });
+  </script>
+</body>
+</html>
